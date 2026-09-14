@@ -45,7 +45,9 @@ export function JoinCommunityDrawer({
                         event.preventDefault();
                         setPending(true);
                         try {
-                            const result = await joinCommunityResult(new FormData(event.currentTarget));
+                            const result = await joinCommunityResult(
+                                new FormData(event.currentTarget),
+                            );
                             if (result.ok) {
                                 toast.success(result.message);
                                 setOpen(false);
@@ -54,27 +56,45 @@ export function JoinCommunityDrawer({
                                 toast.error(result.message);
                             }
                         } catch {
-                            toast.error("Could not join that community. Try again.");
+                            toast.error(
+                                "Could not join that community. Try again.",
+                            );
                         } finally {
                             setPending(false);
                         }
-                    }}
-                >
+                    }}>
                     <DrawerHeader className="text-left">
-                        <DrawerTitle className="normal-case tracking-normal">Join community</DrawerTitle>
-                        <DrawerDescription>Enter an invite code to join the shift board.</DrawerDescription>
+                        <DrawerTitle className="normal-case tracking-normal">
+                            Join community
+                        </DrawerTitle>
+                        <DrawerDescription>
+                            Enter an invite code to join the shift board.
+                        </DrawerDescription>
                     </DrawerHeader>
 
                     <Separator className="my-4" />
 
                     <div className="grid gap-2 px-4">
                         <Label htmlFor="inviteCode">Invite code</Label>
-                        <Input className="h-12 uppercase" id="inviteCode" name="inviteCode" placeholder="ABC123" required />
-                        {error === "code" ? <p className="text-sm font-semibold text-red-700">That invite code did not match a community.</p> : null}
+                        <Input
+                            className="h-12 uppercase"
+                            id="inviteCode"
+                            name="inviteCode"
+                            placeholder="ABC123"
+                            required
+                        />
+                        {error === "code" ? (
+                            <p className="text-sm font-semibold text-red-700">
+                                That invite code did not match a community.
+                            </p>
+                        ) : null}
                     </div>
 
                     <DrawerFooter className="pt-5">
-                        <Button className="h-12 rounded-md bg-primary text-white normal-case tracking-normal hover:bg-primary-hover" disabled={pending} type="submit">
+                        <Button
+                            className="h-12 rounded-md bg-primary text-white normal-case tracking-normal hover:bg-primary-hover"
+                            disabled={pending}
+                            type="submit">
                             <LogIn className="size-4" />
                             {pending ? "Joining..." : "Join community"}
                         </Button>

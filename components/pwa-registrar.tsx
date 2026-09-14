@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 
 export function PwaRegistrar() {
-  useEffect(() => {
-    if (!("serviceWorker" in navigator)) return;
+    useEffect(() => {
+        if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.register("/sw.js").catch((error) => {
-      console.error("Could not register service worker", error);
-    });
-  }, []);
+        navigator.serviceWorker.register("/sw.js").catch((error) => {
+            console.error("Could not register service worker", error);
+        });
+    }, []);
 
-  return null;
+    return null;
 }

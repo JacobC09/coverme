@@ -14,7 +14,11 @@ type CommunityOverviewData = {
     inviteCode: string;
 };
 
-export function CommunityOverview({ community }: { community: CommunityOverviewData }) {
+export function CommunityOverview({
+    community,
+}: {
+    community: CommunityOverviewData;
+}) {
     const router = useRouter();
     const [communityState, setCommunityState] = useState(community);
 
@@ -32,20 +36,31 @@ export function CommunityOverview({ community }: { community: CommunityOverviewD
                     onPointerEnter={() => router.prefetch("/communities")}
                     onTouchStart={() => router.prefetch("/communities")}
                     prefetch
-                    title="Back"
-                >
+                    title="Back">
                     <ArrowLeft className="size-5" />
                 </Link>
                 <CommunityInfoDrawer
                     community={communityState}
-                    onSaveError={(previous) => setCommunityState((current) => ({ ...current, ...previous }))}
-                    onSaveStart={(next) => setCommunityState((current) => ({ ...current, ...next }))}
+                    onSaveError={(previous) =>
+                        setCommunityState((current) => ({
+                            ...current,
+                            ...previous,
+                        }))
+                    }
+                    onSaveStart={(next) =>
+                        setCommunityState((current) => ({
+                            ...current,
+                            ...next,
+                        }))
+                    }
                     onSaveSuccess={() => router.refresh()}
                 />
             </header>
 
             <section className="grid gap-3">
-                <h1 className="truncate text-3xl font-black tracking-normal">{communityState.name}</h1>
+                <h1 className="truncate text-3xl font-black tracking-normal">
+                    {communityState.name}
+                </h1>
                 <div>
                     <p className="inline-flex gap-2 rounded-full bg-amber-100 px-3 py-2 text-sm font-black text-amber-800">
                         <KeyRound className="size-4" />
@@ -57,13 +72,17 @@ export function CommunityOverview({ community }: { community: CommunityOverviewD
                     {communityState.companyName ? (
                         <p className="flex items-center gap-2">
                             <Building2 className="size-4 shrink-0 text-zinc-400" />
-                            <span className="truncate font-semibold">{communityState.companyName}</span>
+                            <span className="truncate font-semibold">
+                                {communityState.companyName}
+                            </span>
                         </p>
                     ) : null}
                     {communityState.address ? (
                         <p className="flex items-center gap-2">
                             <MapPin className="size-4 shrink-0 text-zinc-400" />
-                            <span className="truncate font-semibold">{communityState.address}</span>
+                            <span className="truncate font-semibold">
+                                {communityState.address}
+                            </span>
                         </p>
                     ) : null}
                 </div>

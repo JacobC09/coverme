@@ -45,15 +45,18 @@ function normalizeHex(hex) {
 }
 
 function replaceTailwindUtilities(source) {
-    return source.replace(utilityPattern, (match, prefix, hex, opacity = "") => {
-        const color = colorMap.get(normalizeHex(hex));
+    return source.replace(
+        utilityPattern,
+        (match, prefix, hex, opacity = "") => {
+            const color = colorMap.get(normalizeHex(hex));
 
-        if (!color) {
-            return match;
-        }
+            if (!color) {
+                return match;
+            }
 
-        return `${prefix}${color.token}${opacity}`;
-    });
+            return `${prefix}${color.token}${opacity}`;
+        },
+    );
 }
 
 function replaceCssHexValues(source) {
@@ -82,7 +85,9 @@ async function collectFiles(root) {
     const rootStats = await stat(rootPath);
 
     if (rootStats.isFile()) {
-        return supportedExtensions.has(path.extname(rootPath)) ? [rootPath] : [];
+        return supportedExtensions.has(path.extname(rootPath))
+            ? [rootPath]
+            : [];
     }
 
     const entries = await readdir(rootPath, { withFileTypes: true });
@@ -100,7 +105,10 @@ async function collectFiles(root) {
             continue;
         }
 
-        if (entry.isFile() && supportedExtensions.has(path.extname(entry.name))) {
+        if (
+            entry.isFile() &&
+            supportedExtensions.has(path.extname(entry.name))
+        ) {
             files.push(entryPath);
         }
     }
@@ -143,7 +151,9 @@ if (changedFiles.length === 0) {
     console.log("No color replacements found.");
 } else {
     const action = dryRun ? "Would update" : "Updated";
-    console.log(`${action} ${changedFiles.length} file${changedFiles.length === 1 ? "" : "s"}:`);
+    console.log(
+        `${action} ${changedFiles.length} file${changedFiles.length === 1 ? "" : "s"}:`,
+    );
 
     for (const file of changedFiles) {
         console.log(`- ${file}`);

@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    --breakpoint-xs: 480px;
+
     --color-background: #f7f4ef;
     --color-background-soft: #f6f3ed;
     --color-foreground: var(--foreground);
@@ -95,7 +97,7 @@
     --warning-soft: #fff8e6;
 }
 
-    .dark {
+.dark {
     --background: oklch(0.141 0.005 285.823);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.21 0.006 285.885);
@@ -169,7 +171,8 @@
         color: var(--primary);
     }
 
-    .cn-toast[data-sonner-toast][data-styled="true"] [data-close-button].cn-toast-close {
+    .cn-toast[data-sonner-toast][data-styled="true"]
+        [data-close-button].cn-toast-close {
         height: 1.5rem;
         width: 1.5rem;
         border-color: rgb(228 228 231);
@@ -178,17 +181,23 @@
         box-shadow: 0 6px 18px rgb(18 52 59 / 12%);
     }
 
-    .cn-toast[data-sonner-toast][data-styled="true"] [data-close-button].cn-toast-close:hover {
+    .cn-toast[data-sonner-toast][data-styled="true"]
+        [data-close-button].cn-toast-close:hover {
         border-color: rgb(212 212 216);
         background: white;
         color: var(--primary);
     }
 
     .cn-toast[data-type="error"][data-sonner-toast][data-styled="true"] {
-        border-color: color-mix(in oklch, var(--destructive) 24%, rgb(228 228 231));
+        border-color: color-mix(
+            in oklch,
+            var(--destructive) 24%,
+            rgb(228 228 231)
+        );
     }
 
-    .cn-toast[data-type="error"][data-sonner-toast][data-styled="true"] [data-icon].cn-toast-icon {
+    .cn-toast[data-type="error"][data-sonner-toast][data-styled="true"]
+        [data-icon].cn-toast-icon {
         background: color-mix(in oklch, var(--destructive) 12%, white);
         color: var(--destructive);
     }
@@ -197,13 +206,16 @@
         border-color: rgb(245 158 11 / 35%);
     }
 
-    .cn-toast[data-type="warning"][data-sonner-toast][data-styled="true"] [data-icon].cn-toast-icon {
+    .cn-toast[data-type="warning"][data-sonner-toast][data-styled="true"]
+        [data-icon].cn-toast-icon {
         background: rgb(254 243 199);
         color: rgb(146 64 14);
     }
 
-    .cn-toast[data-type="info"][data-sonner-toast][data-styled="true"] [data-icon].cn-toast-icon,
-    .cn-toast[data-type="loading"][data-sonner-toast][data-styled="true"] [data-icon].cn-toast-icon {
+    .cn-toast[data-type="info"][data-sonner-toast][data-styled="true"]
+        [data-icon].cn-toast-icon,
+    .cn-toast[data-type="loading"][data-sonner-toast][data-styled="true"]
+        [data-icon].cn-toast-icon {
         background: color-mix(in oklch, var(--primary) 10%, white);
         color: var(--primary);
     }

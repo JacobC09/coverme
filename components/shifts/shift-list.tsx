@@ -34,45 +34,57 @@ export function ShiftList({
     return (
         <section className="text-zinc-500 text-sm">
             <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold uppercase tracking-wide">{title}</h2>
+                <h2 className="font-semibold uppercase tracking-wide">
+                    {title}
+                </h2>
                 <p className="rounded-md normal-case tracking-normal">
                     {shifts.length}
                 </p>
             </div>
             <div className="grid gap-2.5">
-                {shifts.length ? shifts.map((shift) => {
-                    if (variant === "upcoming") return (
-                        <UpcomingShiftRow key={shift.id} shift={shift} />
-                    );
-                    if (variant === "offer") {
+                {shifts.length ? (
+                    shifts.map((shift) => {
+                        if (variant === "upcoming")
+                            return (
+                                <UpcomingShiftRow
+                                    key={shift.id}
+                                    shift={shift}
+                                />
+                            );
+                        if (variant === "offer") {
+                            return (
+                                <OfferShiftRow
+                                    key={shift.id}
+                                    onCancelError={() => onCancelError?.(shift)}
+                                    onCancelStart={() => onCancelStart?.(shift)}
+                                    onCancelSuccess={() =>
+                                        onCancelSuccess?.(shift)
+                                    }
+                                    shift={shift}
+                                />
+                            );
+                        }
+
                         return (
-                            <OfferShiftRow
+                            <AvailableShiftRow
                                 key={shift.id}
-                                onCancelError={() => onCancelError?.(shift)}
-                                onCancelStart={() => onCancelStart?.(shift)}
-                                onCancelSuccess={() => onCancelSuccess?.(shift)}
+                                onClaimError={() => onClaimError?.(shift)}
+                                onClaimStart={() => onClaimStart?.(shift)}
+                                onClaimSuccess={() => onClaimSuccess?.(shift)}
                                 shift={shift}
                             />
                         );
-                    }
-
-                    return (
-                        <AvailableShiftRow
-                            key={shift.id}
-                            onClaimError={() => onClaimError?.(shift)}
-                            onClaimStart={() => onClaimStart?.(shift)}
-                            onClaimSuccess={() => onClaimSuccess?.(shift)}
-                            shift={shift}
-                        />
-                    );
-                }) : (
+                    })
+                ) : (
                     <div className="rounded-lg border border-dashed border-zinc-300 bg-white/60 p-2.5 text-zinc-600">
                         <div className="flex gap-3 items-center">
                             <div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
                                 <Bell className="size-5" />
                             </div>
                             <div className="min-w-0">
-                                <p className="font-semibold text-md text-zinc-950">{empty}</p>
+                                <p className="font-semibold text-md text-zinc-950">
+                                    {empty}
+                                </p>
                             </div>
                         </div>
                     </div>

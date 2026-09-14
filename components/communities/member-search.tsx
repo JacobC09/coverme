@@ -4,9 +4,13 @@ import { fuzzyScore } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export function MemberSearch({ members }: { members: { id: string; name: string; email: string }[] }) {
+export function MemberSearch({
+    members,
+}: {
+    members: { id: string; name: string; email: string }[];
+}) {
     const [query, setQuery] = useState("");
-    
+
     const visible = useMemo(() => {
         const value = query.trim().toLowerCase();
         if (!value) return members;
@@ -21,7 +25,6 @@ export function MemberSearch({ members }: { members: { id: string; name: string;
             .filter((item) => item.score > 0)
             .sort((a, b) => b.score - a.score)
             .map((item) => item.member);
-            
     }, [members, query]);
 
     return (
@@ -39,7 +42,9 @@ export function MemberSearch({ members }: { members: { id: string; name: string;
                 {visible.map((member) => (
                     <div className="py-3" key={member.id}>
                         <p className="font-bold">{member.name}</p>
-                        <p className="truncate text-sm text-zinc-500">{member.email}</p>
+                        <p className="truncate text-sm text-zinc-500">
+                            {member.email}
+                        </p>
                     </div>
                 ))}
             </div>

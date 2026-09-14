@@ -9,11 +9,12 @@ import { signOut } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { NotificationButton } from "@/components/notification-button";
+import { SettingsButton } from "@/components/settings/settings-button";
 import { OfferShiftDrawer } from "@/components/shifts/offer-shift-drawer";
 import { ShiftList } from "@/components/shifts/shift-list";
 import type { CommunityOption, Shift } from "@/components/shifts/types";
 
-export function CoverMeApp({
+export function App({
     name,
     upcoming,
     offers,
@@ -30,7 +31,11 @@ export function CoverMeApp({
 }) {
     const router = useRouter();
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [shiftState, setShiftState] = useState({ upcoming, offers, available });
+    const [shiftState, setShiftState] = useState({
+        upcoming,
+        offers,
+        available,
+    });
     const hasCommunities = communities.length > 0;
 
     function sortShifts(shifts: Shift[]) {
@@ -42,7 +47,10 @@ export function CoverMeApp({
     }
 
     function addShift(shifts: Shift[], shift: Shift) {
-        return sortShifts([shift, ...shifts.filter((item) => item.id !== shift.id)]);
+        return sortShifts([
+            shift,
+            ...shifts.filter((item) => item.id !== shift.id),
+        ]);
     }
 
     function removeShift(shifts: Shift[], shift: Shift) {
@@ -58,17 +66,34 @@ export function CoverMeApp({
             <header className="flex items-center justify-between">
                 <div className="min-w-0">
                     <p className="truncate text-sm text-zinc-500">CoverMe</p>
-                    <h1 className="text-2xl font-bold tracking-normal">Hey, <span className="text-emerald-700">{name.split(" ")[0]}</span></h1>
+                    <h1 className="text-2xl font-bold tracking-normal">
+                        Hey,{" "}
+                        <span className="text-emerald-700">
+                            {name.split(" ")[0]}
+                        </span>
+                    </h1>
                 </div>
                 <div className="flex items-center gap-2">
-                    <NotificationButton publicKey={pushPublicKey} />
-                    <form action={signOut}>
-                        <Button className="rounded-md" size="icon" title="Sign out" type="submit" variant="ghost">
+                    <NotificationButton
+                        publicKey={pushPublicKey}
+                        className="hidden xs:block"
+                    />
+                    <form action={signOut} className="hidden xs:block">
+                        <Button
+                            className="rounded-md"
+                            size="icon"
+                            title="Sign out"
+                            type="submit"
+                            variant="ghost">
                             <LogOut className="size-5" />
                         </Button>
                     </form>
+                    <SettingsButton />
                     {hasCommunities ? (
-                        <Drawer onOpenChange={setDrawerOpen} open={drawerOpen} showSwipeHandle>
+                        <Drawer
+                            onOpenChange={setDrawerOpen}
+                            open={drawerOpen}
+                            showSwipeHandle>
                             <DrawerTrigger
                                 render={
                                     <Button className="rounded-md bg-primary text-white normal-case tracking-normal hover:bg-primary-hover">
@@ -85,7 +110,9 @@ export function CoverMeApp({
                                 onPostError={(temporaryId) => {
                                     setShiftState((current) => ({
                                         ...current,
-                                        offers: current.offers.filter((shift) => shift.id !== temporaryId),
+                                        offers: current.offers.filter(
+                                            (shift) => shift.id !== temporaryId,
+                                        ),
                                     }));
                                 }}
                                 onPostStart={(shift) => {
@@ -100,9 +127,18 @@ export function CoverMeApp({
                                         offers: sortShifts(
                                             shift
                                                 ? current.offers.map((item) =>
-                                                    item.id === temporaryId ? { ...shift, optimistic: false } : item,
-                                                )
-                                                : current.offers.filter((item) => item.id !== temporaryId),
+                                                      item.id === temporaryId
+                                                          ? {
+                                                                ...shift,
+                                                                optimistic: false,
+                                                            }
+                                                          : item,
+                                                  )
+                                                : current.offers.filter(
+                                                      (item) =>
+                                                          item.id !==
+                                                          temporaryId,
+                                                  ),
                                         ),
                                     }));
                                     refreshBoard();
@@ -114,15 +150,18 @@ export function CoverMeApp({
                             aria-disabled="true"
                             className="cursor-not-allowed rounded-md bg-zinc-200 text-zinc-500 normal-case tracking-normal hover:bg-zinc-200 hover:text-zinc-500"
                             onClick={() => {
-                                toast.info("Join a community before offering shifts.", {
-                                    action: {
-                                        label: "Communities",
-                                        onClick: () => router.push("/communities"),
+                                toast.info(
+                                    "Join a community before offering shifts.",
+                                    {
+                                        action: {
+                                            label: "Communities",
+                                            onClick: () =>
+                                                router.push("/communities"),
+                                        },
                                     },
-                                });
+                                );
                             }}
-                            type="button"
-                        >
+                            type="button">
                             <Plus className="size-4" />
                             Offer
                         </Button>
@@ -132,19 +171,31 @@ export function CoverMeApp({
 
             {!hasCommunities ? (
                 <p className="text-sm font-medium leading-5 text-zinc-600">
-                    Join a <Link href="/communities" className="text-blue-500 hover:underline">
+                    Join a{" "}
+                    <Link
+                        href="/communities"
+                        className="text-blue-500 hover:underline">
                         community
-                    </Link> before offering shifts.
+                    </Link>{" "}
+                    before offering shifts.
                 </p>
             ) : null}
 
-            <ShiftList empty="Claim a shift and it will show up here." shifts={shiftState.upcoming} title="Upcoming shifts" variant="upcoming" />
+            <ShiftList
+                empty="Claim a shift and it will show up here."
+                shifts={shiftState.upcoming}
+                title="Upcoming shifts"
+                variant="upcoming"
+            />
             <ShiftList
                 empty="Open shifts you posted will show up here."
                 onCancelError={(shift) => {
                     setShiftState((current) => ({
                         ...current,
-                        offers: addShift(current.offers, { ...shift, optimistic: false }),
+                        offers: addShift(current.offers, {
+                            ...shift,
+                            optimistic: false,
+                        }),
                     }));
                 }}
                 onCancelStart={(shift) => {
@@ -164,7 +215,10 @@ export function CoverMeApp({
                     setShiftState((current) => ({
                         upcoming: removeShift(current.upcoming, shift),
                         offers: current.offers,
-                        available: addShift(current.available, { ...shift, optimistic: false }),
+                        available: addShift(current.available, {
+                            ...shift,
+                            optimistic: false,
+                        }),
                     }));
                 }}
                 onClaimStart={(shift) => {

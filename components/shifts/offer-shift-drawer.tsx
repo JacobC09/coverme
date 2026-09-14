@@ -15,8 +15,18 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { TimePickerField } from "@/components/shifts/time-picker";
@@ -50,13 +60,18 @@ export function OfferShiftDrawer({
     const targetPickerRef = useRef<HTMLDivElement>(null);
     const community = communities.find((item) => item.id === communityId);
     const [roleId, setRoleId] = useState(community?.roles[0]?.id ?? "");
-    const selectedTargets = community?.members.filter((member) => targetIds.includes(member.id)) ?? [];
+    const selectedTargets =
+        community?.members.filter((member) => targetIds.includes(member.id)) ??
+        [];
     const targetResults =
         community?.members.filter((member) => {
             const query = targetQuery.trim().toLowerCase();
             if (targetIds.includes(member.id)) return false;
             if (!query) return true;
-            return member.name.toLowerCase().includes(query) || member.email.toLowerCase().includes(query);
+            return (
+                member.name.toLowerCase().includes(query) ||
+                member.email.toLowerCase().includes(query)
+            );
         }) ?? [];
 
     const normalizedTime = time;
@@ -78,7 +93,11 @@ export function OfferShiftDrawer({
 
         function closeIfOutside(event: Event) {
             const target = event.target;
-            if (!(target instanceof Node) || targetPickerRef.current?.contains(target)) return;
+            if (
+                !(target instanceof Node) ||
+                targetPickerRef.current?.contains(target)
+            )
+                return;
             setTargetOpen(false);
         }
 
@@ -97,21 +116,50 @@ export function OfferShiftDrawer({
         };
     }, [targetOpen]);
 
-    function optimisticShift(formData: FormData, temporaryId: string): Shift | null {
+    function optimisticShift(
+        formData: FormData,
+        temporaryId: string,
+    ): Shift | null {
         const startsAtValue = String(formData.get("startsAt") ?? "");
         const startsAtDate = new Date(startsAtValue);
         const hours = Number(formData.get("lengthHours"));
-        const roleName = community?.roles.find((role) => role.id === roleId)?.name;
+        const roleName = community?.roles.find(
+            (role) => role.id === roleId,
+        )?.name;
 
-        if (!community || !roleName || !startsAtDate.getTime() || !Number.isFinite(hours) || hours <= 0) return null;
+        if (
+            !community ||
+            !roleName ||
+            !startsAtDate.getTime() ||
+            !Number.isFinite(hours) ||
+            hours <= 0
+        )
+            return null;
+
+        const endsAtDate = new Date(
+            startsAtDate.getTime() + hours * 60 * 60 * 1000,
+        );
+        const startTime = startsAtDate.toLocaleTimeString("en-CA", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
+        const endTime = endsAtDate.toLocaleTimeString("en-CA", {
+            hour: "numeric",
+            minute: "2-digit",
+        });
 
         return {
             id: temporaryId,
             owner: ownerName,
             role: roleName,
             startsAt: startsAtDate.toISOString(),
-            date: startsAtDate.toLocaleDateString("en-CA", { month: "short", day: "numeric", weekday: "short" }),
-            time: startsAtDate.toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit" }),
+            date: startsAtDate.toLocaleDateString("en-CA", {
+                month: "short",
+                day: "numeric",
+                weekday: "short",
+            }),
+            time: startTime,
+            timeRange: `${startTime} - ${endTime}`,
             length: `${hours}h`,
             community: community.name,
             description: String(formData.get("description") ?? "").trim(),
@@ -127,9 +175,13 @@ export function OfferShiftDrawer({
                 onSubmit={(event) => {
                     event.preventDefault();
                     if (targetQuery.trim()) {
-                        setTargetError("Choose a person from the list or clear the search.");
+                        setTargetError(
+                            "Choose a person from the list or clear the search.",
+                        );
                         setTargetOpen(true);
-                        toast.error("Choose a requested person from the list before posting.");
+                        toast.error(
+                            "Choose a requested person from the list before posting.",
+                        );
                         return;
                     }
 
@@ -154,15 +206,20 @@ export function OfferShiftDrawer({
                                 onPostError(shift.id);
                             }
                         } catch {
-                            toast.error("Could not post that shift. Try again.");
+                            toast.error(
+                                "Could not post that shift. Try again.",
+                            );
                             onPostError(shift.id);
                         }
                     });
-                }}
-            >
+                }}>
                 <DrawerHeader className="text-left">
-                    <DrawerTitle className="normal-case tracking-normal">Offer a shift</DrawerTitle>
-                    <DrawerDescription>Post the key details so someone can claim it fast.</DrawerDescription>
+                    <DrawerTitle className="normal-case tracking-normal">
+                        Offer a shift
+                    </DrawerTitle>
+                    <DrawerDescription>
+                        Post the key details so someone can claim it fast.
+                    </DrawerDescription>
                 </DrawerHeader>
 
                 <Separator className="my-4" />
@@ -174,19 +231,26 @@ export function OfferShiftDrawer({
                             name="communityId"
                             onValueChange={(value) => {
                                 setCommunityId(value ?? "");
-                                setRoleId(communities.find((community) => community.id === value)?.roles[0]?.id ?? "");
+                                setRoleId(
+                                    communities.find(
+                                        (community) => community.id === value,
+                                    )?.roles[0]?.id ?? "",
+                                );
                                 setTargetIds([]);
                                 setTargetQuery("");
                                 setTargetOpen(false);
                             }}
-                            value={communityId}
-                        >
+                            value={communityId}>
                             <SelectTrigger className="h-11 w-full rounded-md border-zinc-200 px-3">
-                                <SelectValue placeholder="Choose a community">{community?.name}</SelectValue>
+                                <SelectValue placeholder="Choose a community">
+                                    {community?.name}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                                 {communities.map((community) => (
-                                    <SelectItem key={community.id} value={community.id}>
+                                    <SelectItem
+                                        key={community.id}
+                                        value={community.id}>
                                         {community.name}
                                     </SelectItem>
                                 ))}
@@ -195,11 +259,13 @@ export function OfferShiftDrawer({
                     </div>
 
                     <div className="relative grid gap-2" ref={targetPickerRef}>
-                        <Label htmlFor="targetSearch">Request people <span className="text-zinc-400">(optional)</span></Label>
+                        <Label htmlFor="targetSearch">
+                            Request people{" "}
+                            <span className="text-zinc-400">(optional)</span>
+                        </Label>
                         <div
                             className="rounded-md border border-zinc-200 bg-white px-2 py-2"
-                            onClick={() => setTargetOpen(true)}
-                        >
+                            onClick={() => setTargetOpen(true)}>
                             <div className="flex flex-wrap gap-1.5">
                                 {selectedTargets.map((member) => (
                                     <button
@@ -207,10 +273,13 @@ export function OfferShiftDrawer({
                                         key={member.id}
                                         onClick={(event) => {
                                             event.stopPropagation();
-                                            setTargetIds((current) => current.filter((id) => id !== member.id));
+                                            setTargetIds((current) =>
+                                                current.filter(
+                                                    (id) => id !== member.id,
+                                                ),
+                                            );
                                         }}
-                                        type="button"
-                                    >
+                                        type="button">
                                         {member.name}
                                     </button>
                                 ))}
@@ -223,7 +292,11 @@ export function OfferShiftDrawer({
                                         setTargetOpen(true);
                                     }}
                                     onFocus={() => setTargetOpen(true)}
-                                    placeholder={selectedTargets.length ? "Add another" : "All Members"}
+                                    placeholder={
+                                        selectedTargets.length
+                                            ? "Add another"
+                                            : "All Members"
+                                    }
                                     value={targetQuery}
                                 />
                             </div>
@@ -237,19 +310,23 @@ export function OfferShiftDrawer({
                                                 className="px-3 py-2 rounded text-left text-sm font-semibold hover:bg-zinc-100"
                                                 key={member.id}
                                                 onClick={() => {
-                                                    setTargetIds((current) => [...current, member.id]);
+                                                    setTargetIds((current) => [
+                                                        ...current,
+                                                        member.id,
+                                                    ]);
                                                     setTargetQuery("");
                                                     setTargetError("");
                                                     setTargetOpen(false);
                                                 }}
-                                                type="button"
-                                            >
+                                                type="button">
                                                 {member.name}
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="px-3 py-2 text-sm font-medium text-zinc-500">No matching people</div>
+                                    <div className="px-3 py-2 text-sm font-medium text-zinc-500">
+                                        No matching people
+                                    </div>
                                 )}
                                 {targetResults.length > 5 ? (
                                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-linear-to-t from-white via-white/90 to-transparent pb-1 pt-6">
@@ -260,18 +337,34 @@ export function OfferShiftDrawer({
                                 ) : null}
                             </div>
                         ) : null}
-                        {targetError ? <p className="text-sm font-medium text-red-600">{targetError}</p> : null}
+                        {targetError ? (
+                            <p className="text-sm font-medium text-red-600">
+                                {targetError}
+                            </p>
+                        ) : null}
                         {targetIds.map((id) => (
-                            <input key={id} name="targetUserIds" type="hidden" value={id} />
+                            <input
+                                key={id}
+                                name="targetUserIds"
+                                type="hidden"
+                                value={id}
+                            />
                         ))}
                     </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="role">Role</Label>
-                        <Select name="roleId" onValueChange={(value) => setRoleId(value ?? "")} value={roleId}>
+                        <Select
+                            name="roleId"
+                            onValueChange={(value) => setRoleId(value ?? "")}
+                            value={roleId}>
                             <SelectTrigger className="h-11 w-full rounded-md border-zinc-200 px-3">
                                 <SelectValue placeholder="Choose a role">
-                                    {community?.roles.find((role) => role.id === roleId)?.name}
+                                    {
+                                        community?.roles.find(
+                                            (role) => role.id === roleId,
+                                        )?.name
+                                    }
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -286,21 +379,28 @@ export function OfferShiftDrawer({
 
                     <div className="grid gap-2">
                         <Label>Date</Label>
-                        <Popover onOpenChange={setCalendarOpen} open={calendarOpen}>
+                        <Popover
+                            onOpenChange={setCalendarOpen}
+                            open={calendarOpen}>
                             <PopoverTrigger
                                 render={
                                     <Button
                                         className="h-11 justify-start rounded-md border-zinc-200 bg-white px-3 text-left font-normal normal-case tracking-normal text-zinc-700 hover:bg-zinc-50"
-                                        variant="outline"
-                                    >
+                                        variant="outline">
                                         <CalendarIcon className="size-4 text-zinc-500" />
                                         {date
-                                            ? date.toLocaleDateString("en-CA", { month: "long", day: "numeric", weekday: "long" })
+                                            ? date.toLocaleDateString("en-CA", {
+                                                  month: "long",
+                                                  day: "numeric",
+                                                  weekday: "long",
+                                              })
                                             : "Pick a date"}
                                     </Button>
                                 }
                             />
-                            <PopoverContent align="start" className="w-auto p-0">
+                            <PopoverContent
+                                align="start"
+                                className="w-auto p-0">
                                 <Calendar
                                     disabled={{ before: today }}
                                     mode="single"
@@ -325,22 +425,35 @@ export function OfferShiftDrawer({
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="lengthHours">Length</Label>
-                            <Input id="lengthHours" min="0.5" name="lengthHours" placeholder="2.5" required step="0.25" type="number" />
+                            <Input
+                                id="lengthHours"
+                                min="0.5"
+                                name="lengthHours"
+                                placeholder="2.5"
+                                required
+                                step="0.25"
+                                type="number"
+                            />
                         </div>
                     </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" name="description" placeholder="Lane swim, lessons, closing duties..." />
+                        <Textarea
+                            id="description"
+                            name="description"
+                            placeholder="Lane swim, lessons, closing duties..."
+                        />
                     </div>
                 </div>
 
                 <DrawerFooter className="pt-5">
                     <Button
                         className="h-12 rounded-md bg-primary normal-case tracking-normal hover:bg-primary-hover"
-                        disabled={!startsAt || !communityId || !roleId || pending}
-                        type="submit"
-                    >
+                        disabled={
+                            !startsAt || !communityId || !roleId || pending
+                        }
+                        type="submit">
                         <Clock className="size-4" />
                         {pending ? "Posting..." : "Post shift"}
                     </Button>

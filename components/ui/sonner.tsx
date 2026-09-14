@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import type { CSSProperties } from "react"
-import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import { useTheme } from "next-themes";
+import type { CSSProperties } from "react";
+import { Toaster as Sonner, type ToasterProps } from "sonner";
+import {
+    CircleCheckIcon,
+    InfoIcon,
+    TriangleAlertIcon,
+    OctagonXIcon,
+    Loader2Icon,
+} from "lucide-react";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-    const { theme = "system" } = useTheme()
-    const { toastOptions, ...toasterProps } = props
+    const { theme = "system" } = useTheme();
+    const { toastOptions, ...toasterProps } = props;
 
     return (
         <Sonner
@@ -15,21 +21,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
             className="toaster group"
             closeButton
             icons={{
-                success: (
-                    <CircleCheckIcon className="size-4" />
-                ),
-                info: (
-                    <InfoIcon className="size-4" />
-                ),
-                warning: (
-                    <TriangleAlertIcon className="size-4" />
-                ),
-                error: (
-                    <OctagonXIcon className="size-4" />
-                ),
-                loading: (
-                    <Loader2Icon className="size-4 animate-spin" />
-                ),
+                success: <CircleCheckIcon className="size-4" />,
+                info: <InfoIcon className="size-4" />,
+                warning: <TriangleAlertIcon className="size-4" />,
+                error: <OctagonXIcon className="size-4" />,
+                loading: <Loader2Icon className="size-4 animate-spin" />,
             }}
             style={
                 {
@@ -45,8 +41,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
                 duration: toastOptions?.duration ?? 3500,
                 classNames: {
                     ...toastOptions?.classNames,
-                    toast:
-                        "cn-toast border-zinc-200 bg-cream px-4 py-3 text-zinc-950 shadow-[0_14px_35px_rgba(18,52,59,0.16)]",
+                    toast: "cn-toast border-zinc-200 bg-cream px-4 py-3 text-zinc-950 shadow-[0_14px_35px_rgba(18,52,59,0.16)]",
                     content: "gap-0.5",
                     title: "text-sm font-bold leading-5 tracking-normal",
                     description: "text-xs font-medium leading-5 text-zinc-600",
@@ -59,7 +54,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
             }}
             {...toasterProps}
         />
-    )
-}
+    );
+};
 
-export { Toaster }
+export { Toaster };

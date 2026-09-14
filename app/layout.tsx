@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { PwaRegistrar } from "@/components/pwa-registrar";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -43,9 +43,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
         <html
             lang="en"
-            className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
-        >
-            <body className="bg-background min-h-full flex flex-col max-w-2xl mx-auto overflow-x-hidden px-6 sm:px-10 py-8 sm:py-10 pb-[20vh] text-zinc-950">
+            className={cn(
+                "h-full",
+                "antialiased",
+                geistSans.variable,
+                geistMono.variable,
+                "font-sans",
+                inter.variable,
+            )}>
+            <body className="bg-background min-h-full flex flex-col max-w-2xl mx-auto overflow-x-hidden px-6 sm:px-10 pt-8 sm:pt-10 pb-[15vh] text-zinc-950">
                 <PwaRegistrar />
                 {children}
             </body>

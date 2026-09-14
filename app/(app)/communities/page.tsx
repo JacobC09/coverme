@@ -18,8 +18,17 @@ export default async function CommunitiesPage({
     });
     const communities = memberships.map(({ community }) => community);
     const communitiesKey = communities
-        .map((community) => `${community.id}:${community.name}:${community.members.length}`)
+        .map(
+            (community) =>
+                `${community.id}:${community.name}:${community.members.length}`,
+        )
         .join("|");
 
-    return <CommunitiesScreen communities={communities} error={error} key={communitiesKey} />;
+    return (
+        <CommunitiesScreen
+            communities={communities}
+            error={error}
+            key={communitiesKey}
+        />
+    );
 }

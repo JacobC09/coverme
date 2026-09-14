@@ -17,7 +17,12 @@ function configureWebPush() {
     const privateKey = process.env.VAPID_PRIVATE_KEY;
     const email = process.env.WEB_PUSH_EMAIL;
 
-    if (typeof publicKey !== "string" || typeof privateKey !== "string" || typeof email !== "string") return false;
+    if (
+        typeof publicKey !== "string" ||
+        typeof privateKey !== "string" ||
+        typeof email !== "string"
+    )
+        return false;
 
     webPush.setVapidDetails(`mailto:${email}`, publicKey, privateKey);
     return true;
@@ -50,13 +55,17 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
                             auth: subscription.auth,
                             p256dh: subscription.p256dh,
                         },
-                        expirationTime: subscription.expirationTime ? Number(subscription.expirationTime) : null,
+                        expirationTime: subscription.expirationTime
+                            ? Number(subscription.expirationTime)
+                            : null,
                     },
                     JSON.stringify(payload),
                 );
             } catch (error) {
                 if (isExpiredSubscriptionError(error)) {
-                    await prisma.pushSubscription.deleteMany({ where: { endpoint: subscription.endpoint } });
+                    await prisma.pushSubscription.deleteMany({
+                        where: { endpoint: subscription.endpoint },
+                    });
                     return;
                 }
 

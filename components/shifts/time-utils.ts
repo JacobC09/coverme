@@ -4,10 +4,13 @@ export function splitShiftDate(value: string) {
 }
 
 export function formatShiftTime(value: string) {
-    return value.replace(/\s*a\.m\./i, " AM").replace(/\s*p\.m\./i, " PM");
+    return value.replace(/\s*a\.m\./gi, " AM").replace(/\s*p\.m\./gi, " PM");
 }
 
-export function parseTimeInput(value: string, fallbackPeriod: "AM" | "PM" = "AM") {
+export function parseTimeInput(
+    value: string,
+    fallbackPeriod: "AM" | "PM" = "AM",
+) {
     const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?\s*(am|pm)?$/i);
     if (!match) return "";
 

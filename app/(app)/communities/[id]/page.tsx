@@ -5,7 +5,11 @@ import { RolesSection } from "@/components/communities/roles-section";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export default async function CommunityPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CommunityPage({
+    params,
+}: {
+    params: Promise<{ id: string }>;
+}) {
     const user = await getCurrentUser();
     if (!user) return null;
 
@@ -16,10 +20,16 @@ export default async function CommunityPage({ params }: { params: Promise<{ id: 
             community: {
                 include: {
                     members: {
-                        include: { user: { select: { id: true, name: true, email: true } } },
+                        include: {
+                            user: {
+                                select: { id: true, name: true, email: true },
+                            },
+                        },
                         orderBy: { user: { name: "asc" } },
                     },
-                    roles: { orderBy: [{ isDefault: "desc" }, { name: "asc" }] },
+                    roles: {
+                        orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+                    },
                 },
             },
         },
@@ -34,7 +44,9 @@ export default async function CommunityPage({ params }: { params: Promise<{ id: 
     const community = membership.community;
     const members = community.members.map((member) => member.user);
     const rolesKey = [
-        ...community.roles.map((role) => `${role.id}:${role.name}:${role.isDefault}`),
+        ...community.roles.map(
+            (role) => `${role.id}:${role.name}:${role.isDefault}`,
+        ),
         ...enabledRoles.map((role) => role.roleId),
     ].join("|");
     const communityKey = `${community.id}:${community.name}:${community.companyName ?? ""}:${community.address ?? ""}`;
@@ -53,10 +65,11 @@ export default async function CommunityPage({ params }: { params: Promise<{ id: 
             </section>
 
             <section>
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">Members</h2>
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
+                    Members
+                </h2>
                 <MemberSearch members={members} />
             </section>
-
         </main>
     );
 }

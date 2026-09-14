@@ -1,4 +1,4 @@
-export { cn } from "cn"
+export { cn } from "cn";
 
 export function fuzzyScore(text: string, query: string) {
     let score = 0;

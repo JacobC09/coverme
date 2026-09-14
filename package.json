@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "net": "next dev -H 192.168.86.23 --experimental-https",
-    "build": "next build",
+    "build": "prisma generate --config prisma7.config.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "push:keys": "web-push generate-vapid-keys"

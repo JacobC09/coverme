@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String                @id @default(cuid())
+  name          String
+  email         String                @unique
+  passwordHash  String
+  createdAt     DateTime              @default(now()) @db.Timestamptz(6)
+  shifts        Shift[]               @relation("OfferedShifts")
+  claims        Shift[]               @relation("ClaimedShifts")
+  memberships   CommunityMember[]
+  memberRoles   CommunityMemberRole[]
+  shiftRequests ShiftRequestTarget[]
+  pushSubscriptions PushSubscription[]
+}
+
+model Shift {
+  id             String               @id @default(cuid())
+  role           String
+  startsAt       DateTime             @db.Timestamptz(6)
+  lengthHours    Decimal              @db.Decimal(4, 2)
+  location       String
+  description    String
+  createdAt      DateTime             @default(now()) @db.Timestamptz(6)
+  ownerId        String
+  claimedById    String?
+  communityId    String?
+  roleId         String?
+  owner          User                 @relation("OfferedShifts", fields: [ownerId], references: [id], onDelete: Cascade)
+  claimedBy      User?                @relation("ClaimedShifts", fields: [claimedById], references: [id], onDelete: SetNull)
+  community      Community?           @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  roleRef        CommunityRole?       @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  requestTargets ShiftRequestTarget[]
+
+  @@index([startsAt])
+  @@index([claimedById, startsAt])
+  @@index([communityId, startsAt])
+  @@index([roleId])
+  @@index([ownerId])
+}
+
+model Community {
+  id                   String                @id @default(cuid())
+  name                 String
+  companyName          String?
+  address              String?
+  inviteCode           String                @unique
+  createdAt            DateTime              @default(now()) @db.Timestamptz(6)
+  members              CommunityMember[]
+  roles                CommunityRole[]
+  shifts               Shift[]
+  communityMemberRoles CommunityMemberRole[]
+
+  @@index([name])
+}
+
+model CommunityRole {
+  id          String                @id @default(cuid())
+  communityId String
+  name        String
+  isDefault   Boolean               @default(false)
+  createdAt   DateTime              @default(now()) @db.Timestamptz(6)
+  community   Community             @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  memberRoles CommunityMemberRole[]
+  shifts      Shift[]
+
+  @@unique([communityId, name])
+  @@index([communityId])
+}
+
+model CommunityMemberRole {
+  communityId String
+  userId      String
+  roleId      String
+  community   Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        CommunityRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([communityId, userId])
+  @@index([roleId])
+}
+
+model CommunityMember {
+  communityId String
+  userId      String
+  joinedAt    DateTime  @default(now()) @db.Timestamptz(6)
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+  @@index([userId])
+}
+
+model ShiftRequestTarget {
+  shiftId String
+  userId  String
+  shift   Shift  @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([shiftId, userId])
+  @@index([userId])
+}
+
+model PushSubscription {
+  id             String   @id @default(cuid())
+  endpoint       String   @unique
+  p256dh         String
+  auth           String
+  expirationTime BigInt?
+  createdAt      DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @db.Timestamptz(6)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

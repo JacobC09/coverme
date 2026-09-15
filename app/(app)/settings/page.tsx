@@ -8,7 +8,7 @@ export default async function SettingsPage() {
 
     return (
         <SettingsScreen
-            name={user.name}
+            user={user}
             pushPublicKey={process.env.VAPID_PUBLIC_KEY}
         />
     );

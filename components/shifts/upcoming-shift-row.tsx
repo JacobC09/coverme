@@ -1,17 +1,28 @@
+"use client";
+
 import { UsersRound } from "lucide-react";
 import { PersonBubble } from "@/components/shifts/person-bubble";
+import { ShiftCancellationButton } from "@/components/shifts/shift-cancellation-button";
 import type { Shift } from "@/components/shifts/types";
 import {
     formatShiftTime,
     splitShiftDate,
 } from "@/components/shifts/time-utils";
+import { cn } from "@/lib/utils";
 
 export function UpcomingShiftRow({ shift }: { shift: Shift }) {
     const [weekday, month, day] = splitShiftDate(shift.date);
+    const hasPendingCancellation = Boolean(shift.cancellationRequest);
 
     return (
         <article
-            className={`flex flex-col rounded-lg border border-zinc-200 bg-zinc-50 p-3 ${shift.optimistic ? "opacity-75" : ""}`}>
+            className={cn(
+                "flex flex-col rounded-lg border p-3 transition-opacity",
+                hasPendingCancellation
+                    ? "border-zinc-200 bg-zinc-100 opacity-60 grayscale"
+                    : "border-zinc-200 bg-zinc-50",
+                shift.optimistic && "opacity-75",
+            )}>
             <div className="flex items-start gap-3">
                 <div className="flex h-full shrink-0 flex-col items-center justify-center rounded-md border border-zinc-200 bg-white px-3 py-2 text-center">
                     <p className="text-sm font-black uppercase text-zinc-500">
@@ -28,7 +39,7 @@ export function UpcomingShiftRow({ shift }: { shift: Shift }) {
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-start justify-between gap-2 text-sm font-bold">
                         <div className="flex-1 flex-wrap flex gap-2">
-                            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1.5 leading-none text-amber-800">
+                            <span className="inline-flex items-center rounded-full bg-amber-200 px-2.5 py-1.5 leading-none text-amber-800">
                                 {shift.role}
                             </span>
                             {shift.targetNames.length ? (
@@ -37,12 +48,12 @@ export function UpcomingShiftRow({ shift }: { shift: Shift }) {
                                 </span>
                             ) : null}
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-gold px-2.5 py-1.5 leading-none text-zinc-950">
+                        <span className="inline-flex items-center rounded-full bg-amber-200 px-2.5 py-1.5 leading-none text-amber-800">
                             {shift.length}
                         </span>
                     </div>
 
-                    <div className="grid items-center py-2">
+                    <div className="grid items-center pt-2">
                         <p className="text-xl font-black leading-tight text-zinc-950">
                             {formatShiftTime(shift.timeRange)}
                         </p>
@@ -64,6 +75,10 @@ export function UpcomingShiftRow({ shift }: { shift: Shift }) {
                     </div>
                 </div>
             </div>
+            <ShiftCancellationButton
+                className="border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
+                shift={shift}
+            />
         </article>
     );
 }

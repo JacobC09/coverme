@@ -13,42 +13,60 @@ datasource db {
 }
 
 model User {
-  id            String                @id @default(cuid())
-  name          String
-  email         String                @unique
-  passwordHash  String
-  createdAt     DateTime              @default(now()) @db.Timestamptz(6)
-  shifts        Shift[]               @relation("OfferedShifts")
-  claims        Shift[]               @relation("ClaimedShifts")
-  memberships   CommunityMember[]
-  memberRoles   CommunityMemberRole[]
-  shiftRequests ShiftRequestTarget[]
-  pushSubscriptions PushSubscription[]
+  id                            String                @id @default(cuid())
+  name                          String
+  email                         String                @unique
+  passwordHash                  String
+  createdAt                     DateTime              @default(now()) @db.Timestamptz(6)
+  shifts                        Shift[]               @relation("OfferedShifts")
+  claims                        Shift[]               @relation("ClaimedShifts")
+  memberships                   CommunityMember[]
+  memberRoles                   CommunityMemberRole[]
+  shiftRequests                 ShiftRequestTarget[]
+  pushSubscriptions             PushSubscription[]
+  cancellationRequestsMade      CancellationRequest[] @relation("CancellationRequestsMade")
+  cancellationRequestsToApprove CancellationRequest[] @relation("CancellationRequestsToApprove")
 }
 
 model Shift {
-  id             String               @id @default(cuid())
-  role           String
-  startsAt       DateTime             @db.Timestamptz(6)
-  lengthHours    Decimal              @db.Decimal(4, 2)
-  location       String
-  description    String
-  createdAt      DateTime             @default(now()) @db.Timestamptz(6)
-  ownerId        String
-  claimedById    String?
-  communityId    String?
-  roleId         String?
-  owner          User                 @relation("OfferedShifts", fields: [ownerId], references: [id], onDelete: Cascade)
-  claimedBy      User?                @relation("ClaimedShifts", fields: [claimedById], references: [id], onDelete: SetNull)
-  community      Community?           @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  roleRef        CommunityRole?       @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  requestTargets ShiftRequestTarget[]
+  id                  String               @id @default(cuid())
+  role                String
+  startsAt            DateTime             @db.Timestamptz(6)
+  lengthHours         Decimal              @db.Decimal(4, 2)
+  location            String
+  description         String
+  createdAt           DateTime             @default(now()) @db.Timestamptz(6)
+  ownerId             String
+  claimedById         String?
+  communityId         String?
+  roleId              String?
+  owner               User                 @relation("OfferedShifts", fields: [ownerId], references: [id], onDelete: Cascade)
+  claimedBy           User?                @relation("ClaimedShifts", fields: [claimedById], references: [id], onDelete: SetNull)
+  community           Community?           @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  roleRef             CommunityRole?       @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  requestTargets      ShiftRequestTarget[]
+  cancellationRequest CancellationRequest?
 
   @@index([startsAt])
   @@index([claimedById, startsAt])
   @@index([communityId, startsAt])
   @@index([roleId])
   @@index([ownerId])
+}
+
+model CancellationRequest {
+  id          String   @id @default(cuid())
+  shiftId     String   @unique
+  requesterId String
+  approverId  String
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  shift       Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  requester   User     @relation("CancellationRequestsMade", fields: [requesterId], references: [id], onDelete: Cascade)
+  approver    User     @relation("CancellationRequestsToApprove", fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId])
+  @@index([approverId])
+  @@index([createdAt])
 }
 
 model Community {

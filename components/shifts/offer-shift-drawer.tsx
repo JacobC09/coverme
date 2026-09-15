@@ -151,6 +151,7 @@ export function OfferShiftDrawer({
         return {
             id: temporaryId,
             owner: ownerName,
+            claimedBy: null,
             role: roleName,
             startsAt: startsAtDate.toISOString(),
             date: startsAtDate.toLocaleDateString("en-CA", {
@@ -164,6 +165,7 @@ export function OfferShiftDrawer({
             community: community.name,
             description: String(formData.get("description") ?? "").trim(),
             targetNames: selectedTargets.map((target) => target.name),
+            cancellationRequest: null,
             optimistic: true,
         };
     }

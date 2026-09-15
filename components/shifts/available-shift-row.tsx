@@ -40,21 +40,21 @@ export function AvailableShiftRow({
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-start justify-between gap-2 text-sm font-bold">
                         <div className="flex gap-2 flex-wrap">
-                            <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1.5 leading-none text-amber-800">
+                            <span className="inline-flex items-center rounded-full bg-amber-200 px-2.5 py-1.5 leading-none text-amber-800">
                                 {shift.role}
                             </span>
                             {shift.targetNames.length ? (
-                                <span className="inline-flex items-center shrink-0 rounded-full bg-blue-100 px-2.5 py-1.5 leading-none text-blue-800">
+                                <span className="inline-flex items-center shrink-0 rounded-full bg-blue-200 px-2.5 py-1.5 leading-none text-blue-800">
                                     Specific request
                                 </span>
                             ) : null}
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-gold px-2.5 py-1.5 leading-none text-zinc-950">
+                        <span className="inline-flex items-center rounded-full bg-amber-200 px-2.5 py-1.5 leading-none text-amber-800">
                             {shift.length}
                         </span>
                     </div>
 
-                    <div className="grid items-center py-2">
+                    <div className="grid items-center pt-2">
                         <p className="text-xl font-black leading-tight text-zinc-950">
                             {formatShiftTime(shift.timeRange)}
                         </p>

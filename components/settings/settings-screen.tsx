@@ -9,16 +9,17 @@ import { NotificationSettingsToggle } from "@/components/notification-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { User } from "@/lib/generated/prisma/browser";
 
 export function SettingsScreen({
-    name,
+    user,
     pushPublicKey,
 }: {
-    name: string;
+    user: User;
     pushPublicKey?: string;
 }) {
     const router = useRouter();
-    const [currentName, setCurrentName] = useState(name);
+    const [currentName, setCurrentName] = useState(user.name);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [pending, setPending] = useState(false);
@@ -82,6 +83,17 @@ export function SettingsScreen({
                             }
                             required
                             value={currentName}
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="email" className="opacity-50">
+                            Email
+                        </Label>
+                        <Input
+                            disabled
+                            className="h-12"
+                            value={user.email}
                         />
                     </div>
 

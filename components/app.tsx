@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { NotificationButton } from "@/components/notification-button";
 import { SettingsButton } from "@/components/settings/settings-button";
+import { CancellationRequestList } from "@/components/shifts/cancellation-request-list";
 import { OfferShiftDrawer } from "@/components/shifts/offer-shift-drawer";
 import { ShiftList } from "@/components/shifts/shift-list";
 import type { CommunityOption, Shift } from "@/components/shifts/types";
@@ -19,6 +20,7 @@ export function App({
     upcoming,
     offers,
     available,
+    cancellationRequests,
     communities,
     pushPublicKey,
 }: {
@@ -26,6 +28,7 @@ export function App({
     upcoming: Shift[];
     offers: Shift[];
     available: Shift[];
+    cancellationRequests: Shift[];
     communities: CommunityOption[];
     pushPublicKey?: string;
 }) {
@@ -180,6 +183,8 @@ export function App({
                     before offering shifts.
                 </p>
             ) : null}
+
+            <CancellationRequestList shifts={cancellationRequests} />
 
             <ShiftList
                 empty="Claim a shift and it will show up here."

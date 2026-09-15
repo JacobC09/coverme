@@ -1,6 +1,6 @@
 export function PersonBubble({ name }: { name: string }) {
     return (
-        <span className="inline-flex max-w-full items-center rounded-full bg-white px-2.5 py-1 text-xs font-bold text-primary ring-1 ring-primary/15">
+        <span className="inline-flex max-w-full items-center rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-900 ring-1 ring-sky-200">
             <span className="truncate">{name}</span>
         </span>
     );

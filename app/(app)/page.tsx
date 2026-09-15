@@ -1,19 +1,33 @@
 import { redirect } from "next/navigation";
 import { App } from "@/components/app";
+import type { Shift } from "@/components/shifts/types";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-function formatShift(shift: {
-    id: string;
-    role: string;
-    startsAt: Date;
-    lengthHours: unknown;
-    location: string;
-    description: string;
-    owner: { name: string };
-    community: { name: string } | null;
-    requestTargets: { user: { name: string } }[];
-}) {
+function formatShift(
+    shift: {
+        id: string;
+        ownerId: string;
+        claimedById: string | null;
+        role: string;
+        startsAt: Date;
+        lengthHours: unknown;
+        location: string;
+        description: string;
+        owner: { name: string };
+        claimedBy: { name: string } | null;
+        community: { name: string } | null;
+        requestTargets: { user: { name: string } }[];
+        cancellationRequest: {
+            id: string;
+            requesterId: string;
+            approverId: string;
+            requester: { name: string };
+            approver: { name: string };
+        } | null;
+    },
+    currentUserId: string,
+): Shift {
     const lengthHours = Number(shift.lengthHours);
     const endsAt = new Date(
         shift.startsAt.getTime() + lengthHours * 60 * 60 * 1000,
@@ -30,6 +44,7 @@ function formatShift(shift: {
     return {
         id: shift.id,
         owner: shift.owner.name,
+        claimedBy: shift.claimedBy?.name ?? null,
         role: shift.role,
         startsAt: shift.startsAt.toISOString(),
         date: shift.startsAt.toLocaleDateString("en-CA", {
@@ -43,6 +58,21 @@ function formatShift(shift: {
         community: shift.community?.name ?? shift.location,
         description: shift.description,
         targetNames: shift.requestTargets.map((target) => target.user.name),
+        cancellationRequest: shift.cancellationRequest
+            ? {
+                  id: shift.cancellationRequest.id,
+                  requesterName: shift.cancellationRequest.requester.name,
+                  approverName: shift.cancellationRequest.approver.name,
+                  requesterRole:
+                      shift.cancellationRequest.requesterId === shift.ownerId
+                          ? "owner"
+                          : "coverer",
+                  requestedByMe:
+                      shift.cancellationRequest.requesterId === currentUserId,
+                  awaitingMe:
+                      shift.cancellationRequest.approverId === currentUserId,
+              }
+            : null,
     };
 }
 
@@ -89,8 +119,15 @@ export default async function Home() {
     ];
     const shiftInclude = {
         owner: { select: { name: true } },
+        claimedBy: { select: { name: true } },
         community: { select: { name: true } },
         requestTargets: { include: { user: { select: { name: true } } } },
+        cancellationRequest: {
+            include: {
+                requester: { select: { name: true } },
+                approver: { select: { name: true } },
+            },
+        },
     };
 
     const [upcoming, offers, available] = await Promise.all([
@@ -102,7 +139,6 @@ export default async function Home() {
         prisma.shift.findMany({
             where: {
                 ownerId: user.id,
-                claimedById: null,
                 startsAt: { gte: new Date() },
             },
             include: shiftInclude,
@@ -140,17 +176,31 @@ export default async function Home() {
             .map((member) => member.user),
         roles: membership.community.roles,
     }));
-    const upcomingShifts = upcoming.map(formatShift);
-    const offerShifts = offers.map(formatShift);
-    const availableShifts = available.map(formatShift);
+    const upcomingShifts = upcoming.map((shift) => formatShift(shift, user.id));
+    const offerShifts = offers.map((shift) => formatShift(shift, user.id));
+    const availableShifts = available.map((shift) =>
+        formatShift(shift, user.id),
+    );
+    const cancellationRequestShifts = [
+        ...upcomingShifts,
+        ...offerShifts,
+    ].filter((shift) => shift.cancellationRequest);
     const boardKey = [...upcomingShifts, ...offerShifts, ...availableShifts]
-        .map((shift) => `${shift.id}:${shift.startsAt}`)
+        .map(
+            (shift) =>
+                `${shift.id}:${shift.startsAt}:${shift.claimedBy ?? ""}:${
+                    shift.cancellationRequest?.id ?? ""
+                }:${shift.cancellationRequest?.awaitingMe ?? ""}:${
+                    shift.cancellationRequest?.requestedByMe ?? ""
+                }`,
+        )
         .join("|");
 
     return (
         <App
             key={boardKey}
             available={availableShifts}
+            cancellationRequests={cancellationRequestShifts}
             communities={communities}
             name={user.name}
             offers={offerShifts}

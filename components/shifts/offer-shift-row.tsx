@@ -5,7 +5,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { cancelShiftOfferResult } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { PersonBubbleList } from "@/components/shifts/person-bubble";
+import {
+    PersonBubble,
+    PersonBubbleList,
+} from "@/components/shifts/person-bubble";
+import { ShiftCancellationButton } from "@/components/shifts/shift-cancellation-button";
 import type { Shift } from "@/components/shifts/types";
 import {
     formatShiftTime,
@@ -27,16 +31,31 @@ export function OfferShiftRow({
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pending, startTransition] = useTransition();
     const [weekday, month, day] = splitShiftDate(shift.date);
+    const isCovered = Boolean(shift.claimedBy);
+    const hasPendingCancellation = Boolean(shift.cancellationRequest);
 
     return (
         <article
             className={cn(
-                "flex flex-col rounded-lg border border-amber-200 bg-warning-soft p-3",
+                "flex flex-col rounded-lg border p-3",
+                hasPendingCancellation
+                    ? "border-zinc-200 bg-zinc-100 opacity-60 grayscale"
+                    : isCovered
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-amber-200 bg-warning-soft",
                 shift.optimistic && "opacity-75",
             )}>
             <div className="flex items-start gap-3">
-                <div className="flex shrink-0 h-full flex-col items-center justify-center rounded-md bg-white px-3 py-2 text-center text-zinc-950 ring-1 ring-amber-200">
-                    <p className="text-sm font-black uppercase text-amber-700">
+                <div
+                    className={cn(
+                        "flex h-full shrink-0 flex-col items-center justify-center rounded-md bg-white px-3 py-2 text-center text-zinc-950 ring-1",
+                        isCovered ? "ring-emerald-200" : "ring-amber-200",
+                    )}>
+                    <p
+                        className={cn(
+                            "text-sm font-black uppercase",
+                            isCovered ? "text-emerald-700" : "text-amber-700",
+                        )}>
                         {weekday}
                     </p>
                     <p className="text-base font-black uppercase">{month}</p>
@@ -45,38 +64,54 @@ export function OfferShiftRow({
 
                 <div className="min-w-0 flex-1">
                     <div className="flex gap-2 justify-between flex-wrap text-sm font-bold">
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1.5 leading-none text-amber-800">
+                        <span className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1.5 leading-none",
+                            isCovered ? "bg-emerald-200 text-emerald-800" : "bg-amber-200 text-amber-800"
+                        )}>
                             {shift.role}
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-gold px-2.5 py-1.5 leading-none text-zinc-950">
+                        <span className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1.5 leading-none",
+                            isCovered ? "bg-emerald-200 text-emerald-800" : "bg-amber-200 text-amber-800"
+                        )}>
                             {shift.length}
                         </span>
                     </div>
 
-                    <div className="min-w-0 grid py-2 items-center">
+                    <div className="min-w-0 grid pt-2 items-center">
                         <p className="text-xl font-black leading-tight text-zinc-950">
                             {formatShiftTime(shift.timeRange)}
                         </p>
                         <p className="mt-1.5 inline-flex max-w-full items-center gap-1.5 text-sm font-semibold text-zinc-600">
-                            <UsersRound className="size-4 shrink-0 text-amber-700/70" />
+                            <UsersRound className={cn(
+                                "size-4 shrink-0",
+                                isCovered ? "text-emerald-700/70" : "text-amber-700/70"
+                            )} />
                             <span className="leading-tight">
                                 {shift.community}
                             </span>
                         </p>
-                        {shift.targetNames.length ? (
+                        {shift.claimedBy ? (
                             <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
-                                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-gold-foreground">
+                                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                    Covered by
+                                </span>
+                                <PersonBubble name={shift.claimedBy} />
+                            </div>
+                        ) : shift.targetNames.length ? (
+                            <div className="mt-1.5 flex min-w-0 items-center gap-1.5">
+                                <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-amber-700">
                                     Requesting
                                 </span>
                                 <PersonBubbleList names={shift.targetNames} />
                             </div>
                         ) : (
-                            <p className="mt-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                            <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                                 For anyone
                             </p>
                         )}
                         {shift.description ? (
-                            <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-zinc-600">
+                            <p className="mt-2 line-clamp-2 text-sm leading-5 text-zinc-600">
                                 {shift.description}
                             </p>
                         ) : null}
@@ -84,19 +119,26 @@ export function OfferShiftRow({
                 </div>
             </div>
 
-            <Button
-                className="mt-3 w-full rounded-md border-amber-300 bg-white px-4 text-sm font-bold text-amber-900 normal-case hover:bg-amber-50"
-                disabled={pending || shift.optimistic}
-                onClick={() => setConfirmOpen(true)}
-                type="button"
-                variant="outline">
-                <Trash2 className="size-4" />
-                {shift.optimistic
-                    ? "Posting..."
-                    : pending
-                      ? "Canceling..."
-                      : "Cancel offer"}
-            </Button>
+            {shift.claimedBy ? (
+                <ShiftCancellationButton
+                    className="border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50"
+                    shift={shift}
+                />
+            ) : (
+                <Button
+                    className="mt-3 w-full rounded-md border-amber-300 bg-white px-4 text-sm font-bold text-amber-900 normal-case hover:bg-amber-50"
+                    disabled={pending || shift.optimistic}
+                    onClick={() => setConfirmOpen(true)}
+                    type="button"
+                    variant="outline">
+                    <Trash2 className="size-4" />
+                    {shift.optimistic
+                        ? "Posting..."
+                        : pending
+                          ? "Canceling..."
+                          : "Cancel offer"}
+                </Button>
+            )}
 
             {confirmOpen ? (
                 <div className="fixed inset-0 z-50 grid place-items-center bg-zinc-950/30 px-5 backdrop-blur-sm">

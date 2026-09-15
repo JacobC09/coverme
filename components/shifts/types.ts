@@ -1,6 +1,7 @@
 export type Shift = {
     id: string;
     owner: string;
+    claimedBy: string | null;
     role: string;
     startsAt?: string;
     date: string;
@@ -10,7 +11,17 @@ export type Shift = {
     community: string;
     description: string;
     targetNames: string[];
+    cancellationRequest: CancellationRequest | null;
     optimistic?: boolean;
+};
+
+export type CancellationRequest = {
+    id: string;
+    requesterName: string;
+    approverName: string;
+    requesterRole: "owner" | "coverer";
+    requestedByMe: boolean;
+    awaitingMe: boolean;
 };
 
 export type CommunityOption = {

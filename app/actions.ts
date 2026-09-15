@@ -26,6 +26,7 @@ type PushSubscriptionInput = {
 type ShiftActionData = {
     id: string;
     owner: string;
+    claimedBy: string | null;
     role: string;
     startsAt: string;
     date: string;
@@ -35,6 +36,15 @@ type ShiftActionData = {
     community: string;
     description: string;
     targetNames: string[];
+    cancellationRequest: CancellationRequestActionData | null;
+};
+type CancellationRequestActionData = {
+    id: string;
+    requesterName: string;
+    approverName: string;
+    requesterRole: "owner" | "coverer";
+    requestedByMe: boolean;
+    awaitingMe: boolean;
 };
 type RoleActionData = { id: string; name: string; isDefault: boolean };
 type CommunityActionData = {
@@ -54,17 +64,30 @@ function inviteCode() {
     return randomBytes(5).toString("base64url").slice(0, 7).toUpperCase();
 }
 
-function formatShiftForClient(shift: {
-    id: string;
-    role: string;
-    startsAt: Date;
-    lengthHours: unknown;
-    location: string;
-    description: string;
-    owner: { name: string };
-    community: { name: string } | null;
-    requestTargets: { user: { name: string } }[];
-}): ShiftActionData {
+function formatShiftForClient(
+    shift: {
+        id: string;
+        ownerId: string;
+        claimedById: string | null;
+        role: string;
+        startsAt: Date;
+        lengthHours: unknown;
+        location: string;
+        description: string;
+        owner: { name: string };
+        claimedBy: { name: string } | null;
+        community: { name: string } | null;
+        requestTargets: { user: { name: string } }[];
+        cancellationRequest: {
+            id: string;
+            requesterId: string;
+            approverId: string;
+            requester: { name: string };
+            approver: { name: string };
+        } | null;
+    },
+    currentUserId?: string,
+): ShiftActionData {
     const lengthHours = Number(shift.lengthHours);
     const endsAt = new Date(
         shift.startsAt.getTime() + lengthHours * 60 * 60 * 1000,
@@ -81,6 +104,7 @@ function formatShiftForClient(shift: {
     return {
         id: shift.id,
         owner: shift.owner.name,
+        claimedBy: shift.claimedBy?.name ?? null,
         role: shift.role,
         startsAt: shift.startsAt.toISOString(),
         date: shift.startsAt.toLocaleDateString("en-CA", {
@@ -94,6 +118,21 @@ function formatShiftForClient(shift: {
         community: shift.community?.name ?? shift.location,
         description: shift.description,
         targetNames: shift.requestTargets.map((target) => target.user.name),
+        cancellationRequest: shift.cancellationRequest
+            ? {
+                  id: shift.cancellationRequest.id,
+                  requesterName: shift.cancellationRequest.requester.name,
+                  approverName: shift.cancellationRequest.approver.name,
+                  requesterRole:
+                      shift.cancellationRequest.requesterId === shift.ownerId
+                          ? "owner"
+                          : "coverer",
+                  requestedByMe:
+                      shift.cancellationRequest.requesterId === currentUserId,
+                  awaitingMe:
+                      shift.cancellationRequest.approverId === currentUserId,
+              }
+            : null,
     };
 }
 
@@ -318,9 +357,16 @@ export async function postShiftResult(
             },
             include: {
                 owner: { select: { name: true } },
+                claimedBy: { select: { name: true } },
                 community: { select: { name: true } },
                 requestTargets: {
                     include: { user: { select: { name: true } } },
+                },
+                cancellationRequest: {
+                    include: {
+                        requester: { select: { name: true } },
+                        approver: { select: { name: true } },
+                    },
                 },
             },
         });
@@ -364,7 +410,7 @@ export async function postShiftResult(
         return {
             ok: true,
             message: "Shift posted.",
-            data: formatShiftForClient(shift),
+            data: formatShiftForClient(shift, user.id),
         };
     } catch (error) {
         console.error(error);
@@ -550,6 +596,227 @@ export async function cancelShiftOfferResult(
 
     revalidatePath("/");
     return { ok: true, message: "Offer canceled." };
+}
+
+export async function requestShiftCancellationResult(
+    formData: FormData,
+): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user)
+        return {
+            ok: false,
+            message: "Sign in again before requesting cancellation.",
+        };
+
+    const id = text(formData, "id");
+    if (!id) return { ok: false, message: "Missing shift id." };
+
+    try {
+        const shift = await prisma.shift.findUnique({
+            where: { id },
+            include: {
+                owner: { select: { name: true } },
+                claimedBy: { select: { name: true } },
+                cancellationRequest: true,
+            },
+        });
+
+        if (!shift || shift.startsAt < new Date())
+            return {
+                ok: false,
+                message: "That shift can no longer be canceled.",
+            };
+        if (!shift.claimedById)
+            return {
+                ok: false,
+                message: "That offer has not been claimed yet.",
+            };
+        if (shift.ownerId !== user.id && shift.claimedById !== user.id)
+            return {
+                ok: false,
+                message: "You are not part of that shift.",
+            };
+        if (shift.cancellationRequest)
+            return {
+                ok: false,
+                message:
+                    shift.cancellationRequest.requesterId === user.id
+                        ? "Cancellation request already pending."
+                        : "The other person already requested cancellation.",
+            };
+
+        const approverId =
+            shift.ownerId === user.id ? shift.claimedById : shift.ownerId;
+
+        await prisma.cancellationRequest.create({
+            data: {
+                shiftId: shift.id,
+                requesterId: user.id,
+                approverId,
+            },
+        });
+
+        try {
+            await sendPushToUsers([approverId], {
+                title: "Cancellation request",
+                body:
+                    shift.ownerId === user.id
+                        ? `${user.name} asked to cancel the ${shift.role} shift you took on ${shiftNotificationTime(shift.startsAt)}.`
+                        : `${user.name} asked to cancel covering your ${shift.role} shift on ${shiftNotificationTime(shift.startsAt)}.`,
+                url: "/",
+                tag: `shift-cancel-request-${shift.id}`,
+                requireInteraction: true,
+            });
+        } catch (error) {
+            console.error(
+                "Could not notify the other person about the cancellation request",
+                error,
+            );
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            ok: false,
+            message: "Could not request cancellation. Try again.",
+        };
+    }
+
+    revalidatePath("/");
+    return { ok: true, message: "Cancellation request sent." };
+}
+
+export async function withdrawShiftCancellationResult(
+    formData: FormData,
+): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user)
+        return {
+            ok: false,
+            message: "Sign in again before withdrawing cancellation.",
+        };
+
+    const id = text(formData, "id");
+    if (!id) return { ok: false, message: "Missing shift id." };
+
+    try {
+        const result = await prisma.cancellationRequest.deleteMany({
+            where: {
+                shiftId: id,
+                requesterId: user.id,
+                shift: { startsAt: { gte: new Date() } },
+            },
+        });
+
+        if (result.count === 0)
+            return {
+                ok: false,
+                message: "No pending cancellation request to withdraw.",
+            };
+    } catch (error) {
+        console.error(error);
+        return {
+            ok: false,
+            message: "Could not withdraw that request. Try again.",
+        };
+    }
+
+    revalidatePath("/");
+    return { ok: true, message: "Cancellation request withdrawn." };
+}
+
+export async function respondToShiftCancellationResult(
+    formData: FormData,
+): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user)
+        return {
+            ok: false,
+            message: "Sign in again before responding to cancellation.",
+        };
+
+    const id = text(formData, "id");
+    const response = text(formData, "response");
+    if (!id) return { ok: false, message: "Missing shift id." };
+    if (response !== "approve" && response !== "decline")
+        return { ok: false, message: "Choose a cancellation response." };
+
+    try {
+        const notification = await prisma.$transaction(async (tx) => {
+            const request = await tx.cancellationRequest.findUnique({
+                where: { shiftId: id },
+                include: { shift: true },
+            });
+
+            if (
+                !request ||
+                request.approverId !== user.id ||
+                request.shift.startsAt < new Date()
+            )
+                throw new Error("Cancellation request not available.");
+
+            const notificationData = {
+                requesterId: request.requesterId,
+                shiftId: request.shiftId,
+                role: request.shift.role,
+                startsAt: request.shift.startsAt,
+                approved: response === "approve",
+            };
+
+            if (response === "approve") {
+                if (request.requesterId === request.shift.ownerId) {
+                    await tx.shift.delete({ where: { id: request.shiftId } });
+                } else {
+                    await tx.shift.update({
+                        where: { id: request.shiftId },
+                        data: { claimedById: null },
+                    });
+                    await tx.cancellationRequest.delete({
+                        where: { shiftId: request.shiftId },
+                    });
+                }
+            } else {
+                await tx.cancellationRequest.delete({
+                    where: { shiftId: request.shiftId },
+                });
+            }
+
+            return notificationData;
+        });
+
+        try {
+            await sendPushToUsers([notification.requesterId], {
+                title: notification.approved
+                    ? "Cancellation approved"
+                    : "Cancellation declined",
+                body: notification.approved
+                    ? `Your ${notification.role} shift cancellation for ${shiftNotificationTime(notification.startsAt)} was approved.`
+                    : `Your ${notification.role} shift cancellation for ${shiftNotificationTime(notification.startsAt)} was declined.`,
+                url: "/",
+                tag: `shift-cancel-response-${notification.shiftId}`,
+                requireInteraction: true,
+            });
+        } catch (error) {
+            console.error(
+                "Could not notify the requester about the cancellation response",
+                error,
+            );
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            ok: false,
+            message: "Could not respond to that cancellation request.",
+        };
+    }
+
+    revalidatePath("/");
+    return {
+        ok: true,
+        message:
+            response === "approve"
+                ? "Cancellation approved."
+                : "Cancellation declined.",
+    };
 }
 
 export async function createCommunity(formData: FormData) {

@@ -34,7 +34,7 @@ export function AuthPanel({ error }: { error?: string }) {
                     </div>
                     <p className="text-sm text-zinc-500">CoverMe</p>
                     <h1 className="mt-1 text-3xl font-bold tracking-normal">
-                        Set up your shift board
+                        Get Your Shifts Covered
                     </h1>
                 </div>
 

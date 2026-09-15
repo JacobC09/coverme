@@ -220,7 +220,7 @@ export function OfferShiftDrawer({
                         Offer a shift
                     </DrawerTitle>
                     <DrawerDescription>
-                        Post the key details so someone can claim it fast.
+                        Post the key details of the shift you want to offer.
                     </DrawerDescription>
                 </DrawerHeader>
 

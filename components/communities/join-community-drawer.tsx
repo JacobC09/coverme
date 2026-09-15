@@ -68,7 +68,7 @@ export function JoinCommunityDrawer({
                             Join community
                         </DrawerTitle>
                         <DrawerDescription>
-                            Enter an invite code to join the shift board.
+                            Enter an invite code to join a community.
                         </DrawerDescription>
                     </DrawerHeader>
 

@@ -147,6 +147,8 @@ export function TimePickerField({
                             className={`absolute inset-0 ease-out ${animateHand ? "transition-transform duration-300" : ""}`}
                             style={{ transform: `rotate(${handAngle}deg)` }}>
                             <div className="absolute left-1/2 top-1/2 h-[5.85rem] w-1 origin-bottom -translate-x-1/2 -translate-y-full rounded-full bg-primary" />
+                            <div className="absolute left-1/2 top-[calc(50%-5.85rem)] size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background" />
+
                         </div>
                         <div className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary" />
 

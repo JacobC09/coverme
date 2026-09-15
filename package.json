@@ -8,7 +8,7 @@
         "net": "next dev -H 192.168.86.23 --experimental-https",
         "build": "prisma generate --config prisma7.config.ts && next build",
         "start": "next start",
-        "lint": "eslint",
+        "lint": "tsc --noEmit && eslint .",
         "push:keys": "web-push generate-vapid-keys"
     },
     "dependencies": {

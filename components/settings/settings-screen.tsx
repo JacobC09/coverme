@@ -15,7 +15,7 @@ export function SettingsScreen({
     user,
     pushPublicKey,
 }: {
-    user: User;
+    user: Partial<User>;
     pushPublicKey?: string;
 }) {
     const router = useRouter();
